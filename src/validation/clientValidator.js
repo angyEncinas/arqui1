@@ -1,26 +1,36 @@
 const ClientPlanillaHandler = require('./handlers/clientPlanillaHandler');
-const ClientNuevoHandler = require('./handlers/clientNuevoHandler');
-const ClientProspectoHandler = require('./handlers/clientProspectoHandler');
+const ClientNuevoHandler = require('./handlers/clientNuevoHandler.js');
+const ClientProspectoHandler = require('./handlers/clientProspectoHandler.js');
 
 class ClientValidator {
   constructor() {
-    this.handlerChain = new ClientPlanillaHandler(
-      new ClientNuevoHandler(
-        new ClientProspectoHandler(null)
-      )
-    );
+    this.chain = this.buildValidationChain();
+  }
+
+  buildValidationChain() {
+    const prospectoHandler = new ClientProspectoHandler();
+    const nuevoHandler = new ClientNuevoHandler(prospectoHandler);
+    const planillaHandler = new ClientPlanillaHandler(nuevoHandler);
+    return planillaHandler;
+    
   }
 
   async validate(clientData) {
-    const initialValidatedData = {
-      nombres: clientData.nombres,
-      apellidos: clientData.apellidos,
-      CI: clientData.CI,
-      extension: clientData.extension
-      // Agregar más campos aquí...
+    const emptyComparisonResult = {
+      nombres: false,
+      apellidos: false,
+      CI: false,
+      extension: false,
+      fechaDeNacimiento: false,
+      estadoCivil: false,
+      profesion: false,
+      lugarDeNacimiento: false,
+  
     };
 
-    return await this.handlerChain.handleValidation(clientData, initialValidatedData);
+    const validationResults = await this.chain.handleValidation(clientData, emptyComparisonResult);
+
+    return validationResults;
   }
 }
 

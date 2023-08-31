@@ -1,50 +1,61 @@
 class ClientPlanillaHandler {
-    constructor(nextHandler) {
-      this.nextHandler = nextHandler;
+  constructor(nextHandler) {
+    this.nextHandler = nextHandler;
+  }
+
+  async handleValidation(clientData, validatedData) {
+    console.log('Validando en ClientPlanillaHandler:', clientData);
+    console.log('valdateddata en ClientPlanillaHandler:', validatedData);
+    const apiData = await fetchWebApiData(clientData.CI, clientData.extension);
+
+    if (this.nextHandler) {
+      return this.nextHandler.handleValidation(clientData, apiData);
     }
-  
-    async handleValidation(clientData, validatedData) {
-      if (clientData.source === 'CLIENTE_PLANILLA') {
-        const apiData = await fetchPlanillaApiData(clientData.CI, clientData.extension);
-        const comparisonResult = compareData(validatedData, apiData);
-  
-        if (this.nextHandler) {
-          return this.nextHandler.handleValidation(clientData, comparisonResult);
-        }
-  
-        return comparisonResult;
-      }
-  
-      if (this.nextHandler) {
-        return this.nextHandler.handleValidation(clientData, validatedData);
-      }
-  
-      return validatedData;
-    }
+
+    return apiData;
   }
-  
-  async function fetchPlanillaApiData(CI, extension) {
-    // Simulación de llamada a la API de cliente planilla
-    return {
-      nombres: 'John',
-      apellidos: 'Doe',
-      CI: '123456789',
-      extension: 'LA',
-      // Agregar más campos aquí...
-    };
+}
+
+async function fetchWebApiData(CI, extension) {
+  // Simulación de llamada a la API de cliente prospecto
+  const apiData = [
+    {
+      nombres: 'Jane',
+      apellidos: 'Smith',
+      CI: '987654321',
+      extension: 'LP',
+      fechaDeNacimiento: '20/07/2000',
+      estadoCivil: 'soltera',
+      profesion: 'abogada',
+      lugarDeNacimiento: 'cochabamba',
+      
+    },
+    {
+      nombres: 'Julia',
+      apellidos: 'Robert',
+      CI: '987654555',
+      extension: 'SC',
+      fechaDeNacimiento: '30/07/1981',
+      estadoCivil: 'casada',
+      profesion: 'veterinaria',
+      lugarDeNacimiento: 'La Paz',
+      
+    },
+    // Otros datos de clientes prospecto...
+  ];
+
+  // Buscar en los datos de la API por CI y extensión
+  const matchingData = apiData.find(data => data.CI === CI && data.extension === extension);
+
+  if (matchingData) {
+    return matchingData;
+  } else {
+    throw new Error('Cliente prospecto no encontrado');
   }
-  
-  function compareData(validatedData, apiData) {
-    const comparisonResult = {};
-  
-    comparisonResult.nombres = validatedData.nombres === apiData.nombres;
-    comparisonResult.apellidos = validatedData.apellidos === apiData.apellidos;
-    comparisonResult.CI = validatedData.CI === apiData.CI;
-    comparisonResult.extension = validatedData.extension === apiData.extension;
-    // Agregar más comparaciones aquí...
-  
-    return comparisonResult;
-  }
-  
-  module.exports = ClientPlanillaHandler;
+}
+
+
+module.exports = ClientPlanillaHandler;
+
+
   
