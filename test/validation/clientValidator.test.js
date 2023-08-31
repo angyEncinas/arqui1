@@ -1,38 +1,35 @@
 const ClientPlanillaHandler = require('../../src/validation/handlers/clientPlanillaHandler');
 const ClientNuevoHandler = require('../../src/validation/handlers/clientNuevoHandler');
 const ClientProspectoHandler = require('../../src/validation/handlers/clientProspectoHandler');
-
+const ClientValidator = require('../../src/validation/clientValidator');
 describe('Client Validation Chain', () => {
   // Prueba simple: Validación exitosa de cliente planilla
-  it('should validate a planilla client successfully', async () => {
+  it('should get the web api data successfully', async () => {
     const planillaHandler = new ClientPlanillaHandler(null);
     const clientData = {
-      source: 'CLIENTE_PLANILLA',
-      nombres: 'John',
-      apellidos: 'Doe',
-      CI: '123456789',
-      extension: 'LA',
-      // Agregar más campos aquí...
+      CI: '987654321',
+      extension: 'LP',
     };
 
     const result = await planillaHandler.handleValidation(clientData, clientData);
-    expect(result.nombres).toBe(true);
-    expect(result.apellidos).toBe(true);
-    expect(result.CI).toBe(true);
-    expect(result.extension).toBe(true);
-    // Agregar más aserciones para otros campos...
+    expect(result.nombres).toBe('Jane');
+    expect(result.apellidos).toBe('Smith');
+
   });
 
   // Prueba simple: Validación exitosa de cliente nuevo
   it('should validate a nuevo client successfully', async () => {
     const nuevoHandler = new ClientNuevoHandler(null);
     const clientData = {
-      source: 'CLIENTE_NUEVO',
       nombres: 'Jane',
       apellidos: 'Smith',
       CI: '987654321',
       extension: 'LP',
-      // Agregar más campos aquí...
+      fechaDeNacimiento: '20/07/2000',
+      estadoCivil: 'soltera',
+      profesion: 'abogada',
+      lugarDeNacimiento: 'cochabamba',
+
     };
 
     const result = await nuevoHandler.handleValidation(clientData, clientData);
@@ -40,37 +37,44 @@ describe('Client Validation Chain', () => {
     expect(result.apellidos).toBe(true);
     expect(result.CI).toBe(true);
     expect(result.extension).toBe(true);
-    // Agregar más aserciones para otros campos...
   });
 
-  // ... (más pruebas simples)
-
+  
   // Prueba compleja: Validación de cliente prospecto y comparación de datos
-  it('should validate a prospect client and compare data', async () => {
-    const planillaHandler = new ClientPlanillaHandler(null);
-    const nuevoHandler = new ClientNuevoHandler(planillaHandler);
-    const prospectoHandler = new ClientProspectoHandler(nuevoHandler);
+  it('should pass through the entire validation chain', async () => {
     const clientData = {
-      source: 'CLIENTE_PROSPECTO',
-      nombres: 'Alice',
-      apellidos: 'Johnson',
-      CI: '5555555',
-      extension: 'CB',
-      // Agregar más campos aquí...
+      CI: '987654321',
+      extension: 'LP',
     };
 
-    const result = await prospectoHandler.handleValidation(clientData, clientData);
+    const clientValidator = new ClientValidator();
+    const validationResults = await clientValidator.validate(clientData);
+    console.log(validationResults );
+    // Verificar si los campos pasaron la validación
+    expect(validationResults.nombres).toBe(true);
+    expect(validationResults.apellidos).toBe(true);
+    expect(validationResults.CI).toBe(true);
+    expect(validationResults.extension).toBe(true);
 
-    expect(result.nombres).toBe(false);
-    expect(result.apellidos).toBe(false);
-    expect(result.CI).toBe(false);
-    expect(result.extension).toBe(false);
-    // Agregar más aserciones para otros campos...
 
-    // Verificar mensaje de campos que no coinciden
-    const expectedErrorMessage = 'Los siguientes campos no concuerdan entre las tres fuentes de datos: nombres, apellidos, CI, extension';
-    expect(console.log).toHaveBeenCalledWith(expectedErrorMessage);
+  });
+  it('should pass through the entire validation chain with wrong data', async () => {
+    const clientData = {
+      CI: '987654555',
+      extension: 'SC',
+    };
+
+    const clientValidator = new ClientValidator();
+    const validationResults = await clientValidator.validate(clientData);
+    console.log(validationResults );
+    // Verificar si los campos pasaron la validación
+    expect(validationResults.nombres).toBe(false);
+    expect(validationResults.apellidos).toBe(true);
+    expect(validationResults.CI).toBe(true);
+    expect(validationResults.extension).toBe(true);
+
+    
   });
 
-  // ... (más pruebas complejas)
+  
 });
